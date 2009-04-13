@@ -4,7 +4,7 @@ module Jekyll
     attr_accessor :config, :layouts, :posts, :pages, :static_files,
                   :categories, :exclude, :source, :dest, :lsi, :pygments,
                   :permalink_style, :tags, :time, :future, :safe, :plugins,
-                  :post_defaults
+                  :post_defaults, :collated_posts
     attr_accessor :converters, :generators
 
     # Initialize the site
@@ -38,6 +38,7 @@ module Jekyll
       self.layouts         = {}
       self.posts           = []
       self.pages           = []
+      self.collated_posts  = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = [] } } }
       self.static_files    = []
       self.categories      = Hash.new { |hash, key| hash[key] = [] }
       self.tags            = Hash.new { |hash, key| hash[key] = [] }
@@ -125,6 +126,12 @@ module Jekyll
       end
 
       self.posts.sort!
+      
+      # Create the collated_posts
+      self.posts.each do |post|
+        self.collated_posts[post.date.year][post.date.month][post.date.day].unshift(post)
+      end
+
     end
 
     def generate
