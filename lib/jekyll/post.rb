@@ -158,6 +158,13 @@ module Jekyll
     def id
       File.join(self.dir, self.slug)
     end
+    
+    # The path to the post file.
+    #
+    # Returns <String>
+    def path
+      File.expand_path(File.join(@base, @name))
+    end
 
     # Calculate related posts.
     #
