@@ -55,6 +55,13 @@ Feature: Site configuration
     Then the _site directory should exist
     And I should see "<a href='http://google.com'>Google</a>" in "_site/index.html"
 
+  Scenario: Use kramdown for markup
+    Given I have an "index.markdown" page that contains "[Google](http://google.com)"
+    And I have a configuration file with "markdown" set to "kramdown"
+    When I run jekyll
+    Then the _site directory should exist
+    And I should see "<a href='http://google.com'>Google</a>" in "_site/index.html"
+
   Scenario: Highlight code with pygments
     Given I have an "index.html" file that contains "{% highlight ruby %} puts 'Hello world!' {% endhighlight %}"
     And I have a configuration file with "pygments" set to "true"

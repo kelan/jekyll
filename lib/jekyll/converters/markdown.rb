@@ -49,6 +49,14 @@ module Jekyll
             STDERR.puts '  $ [sudo] gem install maruku'
             raise FatalException.new("Missing dependency: maruku")
           end
+        when 'kramdown'
+          begin
+            require 'kramdown'
+          rescue LoadError
+            STDERR.puts 'You are missing a library required for kramdown. Please run:'
+            STDERR.puts '  $ [sudo] gem install kramdown'
+            raise FatalException.new("Missing dependency: kramdown")
+          end
         else
           STDERR.puts "Invalid Markdown processor: #{@config['markdown']}"
           STDERR.puts "  Valid options are [ maruku | rdiscount ]"
@@ -71,6 +79,8 @@ module Jekyll
           RDiscount.new(content, *@rdiscount_extensions).to_html
         when 'maruku'
           Maruku.new(content).to_html
+        when 'kramdown'
+          Kramdown::Document.new(content).to_html
       end
     end
   end
