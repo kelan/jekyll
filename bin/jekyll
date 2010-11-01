@@ -34,6 +34,10 @@ opts = OptionParser.new do |opts|
   opts.on("--no-auto", "No auto-regenerate") do
     options['auto'] = false
   end
+  
+  opts.on("--auto-purge", "purge site when a layout changes (useful during layout development)") do
+    options['autopurge'] = true
+  end
 
   opts.on("--server [PORT]", "Start web server (default port 4000)") do |port|
     options['server'] = true
@@ -136,6 +140,11 @@ if options['auto']
   dw.add_observer do |*args|
     t = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     puts "[#{t}] regeneration: #{args.size} files changed"
+    if (options['autopurge']) and args.find {|a| a.path.include? "_layouts" }
+      puts "[#{t}] blowing away generated site (at #{destination})"
+      FileUtils.rm_rf destination
+      FileUtils.mkdir_p destination
+    end
     site.process
   end
 
