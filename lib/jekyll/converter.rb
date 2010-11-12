@@ -31,6 +31,10 @@ module Jekyll
     def initialize(config = {})
       @config = config
     end
+    
+    def name
+      return self.class.name.split('::').last.downcase.sub /converter/, ''
+    end
 
     # Get the pygments prefix.
     #

@@ -110,7 +110,18 @@ module Jekyll
         "pageinator" => pager.to_liquid,
       }.merge(context)
       
-      self.output = self.converter.convert(self.raw_content, context)
+      # Figure out all the converters that should be used (by name)
+      converters = [
+        self.data["pre_converters"],
+        self.converter.name,
+        self.data["post_converters"],
+      ].flatten.delete_if { |c| not c }
+      
+      self.output = self.raw_content
+      converters.each do |converter_name|
+        converter = self.site.converters.find { |c| c.name == converter_name }
+        self.output = converter.convert(self.output, context) if converter
+      end
       
       if layout = self.site.layouts[self.data["layout"]]
         context = context.deep_merge({"content" => self.output})
