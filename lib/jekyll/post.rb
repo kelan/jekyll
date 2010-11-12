@@ -128,6 +128,16 @@ module Jekyll
       }.gsub(/\/\//, "/")
     end
 
+    # The post title
+    #
+    # Returns <String>
+    def title
+      @title ||= begin
+        (self.data && self.data["title"]) ||
+        self.slug.split('-').select {|w| w.capitalize! || w }.join(' ')
+      end
+    end
+
     # The UID for this post (useful in feeds)
     # e.g. /2008/11/05/my-awesome-post
     #
@@ -183,7 +193,7 @@ module Jekyll
     # Returns <Hash>
     def to_liquid
       super.deep_merge({
-        "title"      => self.data["title"] || self.slug.split('-').select {|w| w.capitalize! || w }.join(' '),
+        "title"      => self.title,
         "date"       => self.date,
         "id"         => self.id,
         "categories" => self.categories,

@@ -5,11 +5,9 @@ module Jekyll
     priority :low
     
     def setup
-      return if @setup
       @filters = [Jekyll::Filters]
-      @setup = true
     end
-
+    
     def matches(ext)
       ext =~ /(html|xml)/i
     end
@@ -19,7 +17,7 @@ module Jekyll
     end
 
     def convert(content, context)
-      setup
+      self.do_setup_once
       info = { :filters => @filters, :registers => { :site => context['site'] } }
       Liquid::Template.parse(content).render(context, info)
     end

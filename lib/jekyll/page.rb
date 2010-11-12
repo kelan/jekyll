@@ -52,6 +52,23 @@ module Jekyll
     def dir
       url[-1, 1] == '/' ? url : File.dirname(url)
     end
+    
+    def method_missing(symbol, *args)
+      # For rendering as haml, pass on any data values we have
+      data = self.to_liquid
+      if data.has_key? symbol
+        data[symbol]
+      else
+        super(symbol, args)
+      end
+    end
+    
+    # The post title
+    #
+    # Returns <String>
+    def title
+      @title ||= (self.data && self.data["title"])
+    end
 
     # The full path and filename of the post.
     # Defined in the YAML of the post body

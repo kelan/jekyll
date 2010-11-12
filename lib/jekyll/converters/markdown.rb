@@ -7,7 +7,6 @@ module Jekyll
     pygments_suffix "\n"
 
     def setup
-      return if @setup
       # Set the Markdown interpreter (and Maruku self.config, if necessary)
       case @config['markdown']
         when 'rdiscount'
@@ -55,7 +54,6 @@ module Jekyll
           STDERR.puts "  Valid options are [ maruku | rdiscount ]"
           raise FatalException.new("Invalid Markdown process: #{@config['markdown']}")
       end
-      @setup = true
     end
 
     def matches(ext)
@@ -67,7 +65,7 @@ module Jekyll
     end
 
     def convert(content, context)
-      setup
+      self.do_setup_once
       case @config['markdown']
         when 'rdiscount'
           RDiscount.new(content, *@rdiscount_extensions).to_html

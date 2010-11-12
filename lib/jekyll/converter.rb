@@ -36,6 +36,12 @@ module Jekyll
       return self.class.name.split('::').last.downcase.sub /converter/, ''
     end
 
+    def do_setup_once
+      return if @setup_is_done
+      self.setup
+      @setup_is_done = true
+    end
+    
     # Get the pygments prefix.
     #
     # Returns the String prefix.
