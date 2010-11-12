@@ -1,27 +1,47 @@
 module Jekyll
 
   class Page
-    include Convertible
-
     attr_accessor :site, :pager
     attr_accessor :name, :ext, :basename, :dir
-    attr_accessor :data, :content, :output
+    attr_accessor :data, :raw_content, :output
 
     # Initialize a new Page.
     #   +site+ is the Site
-    #   +base+ is the String path to the <source>
     #   +dir+ is the String path between <source> and the file
     #   +name+ is the String filename of the file
     #
     # Returns <Page>
-    def initialize(site, base, dir, name)
+    def initialize(site, dir, name)
       @site = site
-      @base = base
+      @base = site.source
       @dir  = dir
       @name = name
+      self.process_name
+      
+      self.read_yaml
+    end
 
-      self.process(name)
-      self.read_yaml(File.join(base, dir), name)
+    # Extract information from the post filename
+    #
+    # Returns nothing
+    def process_name
+      self.ext = File.extname(self.name)
+      self.basename = File.basename(@name, self.ext)
+    end
+    
+    # Read the YAML frontmatter
+    #
+    # Returns nothing
+    def read_yaml()
+      self.raw_content = File.read(File.join(@base, @dir, @name))
+
+      if self.raw_content =~ /^(---\s*\n.*?\n?)^(---\s*$\n?)/m
+        self.raw_content = self.raw_content[($1.size + $2.size)..-1]
+
+        self.data = YAML.load($1)
+      end
+
+      self.data ||= {}
     end
 
     # The generated directory into which the page will be placed
@@ -65,35 +85,46 @@ module Jekyll
       }.gsub(/\/\//, "/")
     end
 
-    # Extract information from the page filename
-    #   +name+ is the String filename of the page file
+    # Determine the extension depending on content_type
     #
-    # Returns nothing
-    def process(name)
-      self.ext = File.extname(name)
-      self.basename = name.split('.')[0..-2].first
+    # Returns the extensions for the output file
+    def output_ext
+      self.converter.output_ext(self.ext)
     end
-
-    # Add any necessary layouts to this post
-    #   +layouts+ is a Hash of {"name" => "layout"}
-    #   +site_payload+ is the site payload hash
+    
+    # Determine which converter to use based on our extension
+    def converter
+      @converter ||= self.site.converters.find { |c| c.matches(self.ext) }
+    end
+    
+    # Converts the page and does layout as necessary
+    #   +context+ is the data passed to the converter (such as the site_payload data)
     #
-    # Returns nothing
-    def render(layouts, site_payload)
-      payload = {
-        "page" => self.to_liquid,
-        'paginator' => pager.to_liquid
-      }.deep_merge(site_payload)
-
-      do_layout(payload, layouts)
+    # Returns rendered output as <String>
+    def render(context={})
+      context = {
+        "page" => self,
+        "site" => self.site,
+        "pygments_prefix" => converter.pygments_prefix,
+        "pygments_suffix" => converter.pygments_suffix,
+        "pageinator" => pager.to_liquid,
+      }.merge(context)
+      
+      self.output = self.converter.convert(self.raw_content, context)
+      
+      if layout = self.site.layouts[self.data["layout"]]
+        context = context.deep_merge({"content" => self.output})
+        self.output = layout.render(context)
+      end
+      self.output
     end
-
+    
     def to_liquid
       self.data.deep_merge({
         "url"        => File.join(@dir, self.url),
-        "content"    => self.content })
+      })
     end
-
+    
     # Write the generated page file to the destination directory.
     #   +dest_prefix+ is the String path to the destination dir
     #   +dest_suffix+ is a suffix path to the destination dir
@@ -117,7 +148,7 @@ module Jekyll
     end
 
     def inspect
-      "#<Jekyll:Page @name=#{self.name.inspect}>"
+      "#<Jekyll::Page @name=#{self.name.inspect}>"
     end
 
     def html?

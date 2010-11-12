@@ -1,8 +1,7 @@
 module Jekyll
 
-  class Post
+  class Post < Page
     include Comparable
-    include Convertible
 
     class << self
       attr_accessor :lsi
@@ -29,14 +28,10 @@ module Jekyll
     #   +categories+ is an Array of Strings for the categories for this post
     #
     # Returns <Post>
-    def initialize(site, source, dir, name)
-      @site = site
-      @base = File.join(source, dir, '_posts')
-      @name = name
-
+    def initialize(site, dir, name)
+      super(site, File.join(dir, '_posts'), name)
+      
       self.categories = dir.split('/').reject { |x| x.empty? }
-      self.process(name)
-      self.read_yaml(@base, name)
 
       #If we've added a date and time to the yaml, use that instead of the filename date
       #Means we'll sort correctly.
@@ -58,6 +53,17 @@ module Jekyll
       end
     end
 
+    # Extract information from the post filename
+    #
+    # Returns nothing
+    def process_name
+      super
+      m, cats, date, slug, ext = *name.match(MATCHER)
+      self.date = Time.parse(date)
+      self.slug = slug
+      self.ext = ext
+    end
+
     # Spaceship is based on Post#date, slug
     #
     # Returns -1, 0, 1
@@ -67,17 +73,6 @@ module Jekyll
        cmp = self.slug <=> other.slug
       end
       return cmp
-    end
-
-    # Extract information from the post filename
-    #   +name+ is the String filename of the post file
-    #
-    # Returns nothing
-    def process(name)
-      m, cats, date, slug, ext = *name.match(MATCHER)
-      self.date = Time.parse(date)
-      self.slug = slug
-      self.ext = ext
     end
 
     # The generated directory into which the post will be placed
@@ -163,21 +158,6 @@ module Jekyll
       end
     end
 
-    # Add any necessary layouts to this post
-    #   +layouts+ is a Hash of {"name" => "layout"}
-    #   +site_payload+ is the site payload hash
-    #
-    # Returns nothing
-    def render(layouts, site_payload)
-      # construct payload
-      payload = {
-        "site" => { "related_posts" => related_posts(site_payload["site"]["posts"]) },
-        "page" => self.to_liquid
-      }.deep_merge(site_payload)
-
-      do_layout(payload, layouts)
-    end
-
     # Write the generated post file to the destination directory.
     #   +dest+ is the String path to the destination dir
     #
@@ -202,20 +182,19 @@ module Jekyll
     #
     # Returns <Hash>
     def to_liquid
-      self.data.deep_merge({
+      super.deep_merge({
         "title"      => self.data["title"] || self.slug.split('-').select {|w| w.capitalize! || w }.join(' '),
-        "url"        => self.url,
         "date"       => self.date,
         "id"         => self.id,
         "categories" => self.categories,
         "next"       => self.next,
         "previous"   => self.previous,
         "tags"       => self.tags,
-        "content"    => self.content })
+      })
     end
 
     def inspect
-      "<Post: #{self.id}>"
+      "<Jekyll::Post: #{self.id}>"
     end
 
     def next

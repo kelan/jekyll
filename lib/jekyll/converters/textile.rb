@@ -24,7 +24,7 @@ module Jekyll
       ".html"
     end
 
-    def convert(content)
+    def convert(content, context)
       setup
       RedCloth.new(content).to_html
     end

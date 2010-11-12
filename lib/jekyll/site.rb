@@ -61,7 +61,7 @@ module Jekyll
       self.generators = Jekyll::Generator.subclasses.select do |c|
         !self.safe || c.safe
       end.map do |c|
-        c.new(self.config)
+        c.new(self)
       end
     end
 
@@ -88,14 +88,15 @@ module Jekyll
     #
     # Returns nothing
     def read_layouts(dir = '')
-      base = File.join(self.source, dir, "_layouts")
+      layoutsDir = File.join(dir, '_layouts')
+      base = File.join(self.source, layoutsDir)
       return unless File.exists?(base)
       entries = []
       Dir.chdir(base) { entries = filter_entries(Dir['*.*']) }
 
       entries.each do |f|
         name = f.split(".")[0..-2].join(".")
-        self.layouts[name] = Layout.new(self, base, f)
+        self.layouts[name] = Layout.new(self, layoutsDir, f)
       end
     end
 
@@ -111,7 +112,7 @@ module Jekyll
       # first pass processes, but does not yet render post content
       entries.each do |f|
         if Post.valid?(f)
-          post = Post.new(self, self.source, dir, f)
+          post = Post.new(self, dir, f)
 
           if post.published && (self.future || post.date <= self.time)
             self.posts << post
@@ -132,11 +133,11 @@ module Jekyll
 
     def render
       self.posts.each do |post|
-        post.render(self.layouts, site_payload)
+        post.render
       end
 
       self.pages.each do |page|
-        page.render(self.layouts, site_payload)
+        page.render
       end
 
       self.categories.values.map { |ps| ps.sort! { |a, b| b <=> a} }
@@ -182,7 +183,7 @@ module Jekyll
           first3 = File.open(f_abs) { |fd| fd.read(3) }
           if first3 == "---"
             # file appears to have a YAML header so process it as a page
-            pages << Page.new(self, self.source, dir, f)
+            pages << Page.new(self, dir, f)
           else
             # otherwise treat it as a static file
             static_files << StaticFile.new(self, self.source, dir, f)
@@ -203,22 +204,20 @@ module Jekyll
       return hash
     end
 
-    # The Hash payload containing site-wide data
+    # Data for when the site is used in a liquid template
     #
-    # Returns {"site" => {"time" => <Time>,
-    #                     "posts" => [<Post>],
-    #                     "pages" => [<Page>],
-    #                     "categories" => [<Post>]}
-    def site_payload
-      {"site" => self.config.merge({
-          "time"       => self.time,
-          "posts"      => self.posts.sort { |a,b| b <=> a },
-          "pages"      => self.pages,
-          "html_pages" => self.pages.reject { |page| !page.html? },
-          "categories" => post_attr_hash('categories'),
-          "tags"       => post_attr_hash('tags')})}
+    # Returns <Hash>
+    def to_liquid
+      self.config.merge({
+        "time"       => self.time,
+        "posts"      => self.posts.sort { |a,b| b <=> a },
+        "pages"      => self.pages,
+        "html_pages" => self.pages.reject { |page| !page.html? },
+        "categories" => post_attr_hash('categories'),
+        "tags"       => post_attr_hash('tags')
+      })
     end
-
+    
     # Filter out any files/directories that are hidden or backup files (start
     # with "." or "#" or end with "~"), or contain site content (start with "_"),
     # or are excluded in the site configuration, unless they are web server
