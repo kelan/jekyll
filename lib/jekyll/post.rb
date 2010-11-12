@@ -52,6 +52,11 @@ module Jekyll
         self.categories = self.data.pluralized_array('category', 'categories')
       end
     end
+    
+    def read_yaml
+      self.data = site.post_defaults.dup # first get the post_default values
+      super # now let the yaml data supersede it
+    end
 
     # Extract information from the post filename
     #

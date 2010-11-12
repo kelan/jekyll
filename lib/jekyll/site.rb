@@ -3,7 +3,8 @@ module Jekyll
   class Site
     attr_accessor :config, :layouts, :posts, :pages, :static_files,
                   :categories, :exclude, :source, :dest, :lsi, :pygments,
-                  :permalink_style, :tags, :time, :future, :safe, :plugins
+                  :permalink_style, :tags, :time, :future, :safe, :plugins,
+                  :post_defaults
     attr_accessor :converters, :generators
 
     # Initialize the site
@@ -22,6 +23,7 @@ module Jekyll
       self.permalink_style = config['permalink'].to_sym
       self.exclude         = config['exclude'] || []
       self.future          = config['future']
+      self.post_defaults   = config['post_defaults'] || {}
 
       self.reset
       self.setup

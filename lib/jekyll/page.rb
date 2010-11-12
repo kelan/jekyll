@@ -38,7 +38,8 @@ module Jekyll
       if self.raw_content =~ /^(---\s*\n.*?\n?)^(---\s*$\n?)/m
         self.raw_content = self.raw_content[($1.size + $2.size)..-1]
 
-        self.data = YAML.load($1)
+        self.data = {} unless self.data
+        self.data.merge! YAML.load($1)
       end
 
       self.data ||= {}
