@@ -4,7 +4,7 @@ module Jekyll
     attr_accessor :config, :layouts, :posts, :pages, :static_files,
                   :categories, :exclude, :source, :dest, :lsi, :pygments,
                   :permalink_style, :tags, :time, :future, :safe, :plugins,
-                  :post_defaults, :collated_posts
+                  :post_defaults, :collated_posts, :limit_posts
     attr_accessor :converters, :generators
 
     # Initialize the site
@@ -24,6 +24,7 @@ module Jekyll
       self.exclude         = config['exclude'] || []
       self.future          = config['future']
       self.post_defaults   = config['post_defaults'] || {}
+      self.limit_posts     = config['limit_posts'] || nil
 
       self.reset
       self.setup
@@ -42,6 +43,8 @@ module Jekyll
       self.static_files    = []
       self.categories      = Hash.new { |hash, key| hash[key] = [] }
       self.tags            = Hash.new { |hash, key| hash[key] = [] }
+
+      raise ArgumentError, "Limit posts must be nil or >= 1" if !self.limit_posts.nil? && self.limit_posts < 1
     end
 
     def setup
@@ -132,6 +135,8 @@ module Jekyll
         self.collated_posts[post.date.year][post.date.month][post.date.day].unshift(post)
       end
 
+      # limit the posts if :limit_posts option is set
+      self.posts = self.posts[-limit_posts, limit_posts] if limit_posts
     end
 
     def generate

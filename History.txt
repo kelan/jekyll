@@ -1,3 +1,14 @@
+== HEAD
+  * Minor Enhancements
+    * Add wordpress.com importer (#207)
+    * Add --limit-posts cli option (#212)
+    * Add uri_escape filter (#234)
+    * Add --base-url cli option (#235)
+    * Improve MT migrator (#238)
+  * Bug Fixes
+    * Fixed filename basename generation (#208)
+    * Set mode to UTF8 on Sequel connections (#237)
+
 == 0.7.0 / 2010-08-24
   * Minor Enhancements
     * Add support for rdiscount extensions (#173)
