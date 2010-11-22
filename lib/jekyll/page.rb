@@ -151,6 +151,7 @@ module Jekyll
     def to_liquid
       self.data.deep_merge({
         "url"        => File.join(@dir, self.url),
+        "output"     => self.output,
       })
     end
     
