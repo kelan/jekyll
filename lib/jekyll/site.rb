@@ -4,7 +4,7 @@ module Jekyll
     attr_accessor :config, :layouts, :posts, :pages, :static_files,
                   :categories, :exclude, :source, :dest, :lsi, :pygments,
                   :permalink_style, :tags, :time, :future, :safe, :plugins,
-                  :post_defaults, :collated_posts, :limit_posts
+                  :post_defaults, :collated_posts, :limit_posts, :permalink_format
     attr_accessor :converters, :generators
 
     # Initialize the site
@@ -20,7 +20,8 @@ module Jekyll
       self.plugins         = File.expand_path(config['plugins'])
       self.lsi             = config['lsi']
       self.pygments        = config['pygments']
-      self.permalink_style = config['permalink'].to_sym
+      self.permalink_style = config['permalink_style'].to_sym
+      self.permalink_format = config['permalink_format'].to_sym
       self.exclude         = config['exclude'] || []
       self.future          = config['future']
       self.post_defaults   = config['post_defaults'] || {}

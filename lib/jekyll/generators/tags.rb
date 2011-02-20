@@ -30,7 +30,7 @@ module Jekyll
     end
     
     def template
-      "/tagged/#{@tagname}.html"
+      "/tagged/#{@tagname}/"
     end
     
   end # class TagPage
