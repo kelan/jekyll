@@ -190,6 +190,7 @@ if options['server']
 
   mime_types = WEBrick::HTTPUtils::DefaultMimeTypes
   mime_types.store 'js', 'application/javascript'
+  mime_types.store 'ttf', 'font/ttf'
 
   s = HTTPServer.new(
     :Port            => options['server_port'],
